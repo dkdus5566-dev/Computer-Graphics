@@ -32,7 +32,7 @@
 | 작업 | 상태 | 브랜치 |
 |---|---|---|
 | 기본 구조·빌드 설정 | ✅ main | — |
-| SOR 모델러 (`Common/` Mesh·파일 입출력·SOR 생성 + `SORModeler/`) | 🔨 진행 중 (헤르메스의 신발 담당) | `feature/sor-modeler` |
+| SOR 모델러 (`Common/` Mesh·파일 입출력·SOR 생성 + `SORModeler/`) | ✅ 1차 완성 (헤르메스의 신발 담당) — 사용법은 아래 2-1 | `feature/sor-modeler` |
 | 미로·플레이어 이동·충돌·카메라 기반 | ❓ 담당 정하기 | — |
 | 아이템 설계서 4종 | ⏳ 각자 | `feature/<아이템>` |
 
@@ -52,6 +52,32 @@
 
 - 빌드하면 exe가 `Bin/Debug/`에 생기고 `freeglut.dll`이 자동 복사된다.
 - 디버그 실행 시 작업 폴더 = **저장소 루트**. 파일 경로는 항상 상대경로 (`"Models/xxx.dat"`). 절대경로(`C:\...`) 금지.
+
+---
+
+## 2-1. SOR 모델러 사용법
+
+**실행:** VS에서 SORModeler를 시작 프로젝트로 → F5. 또는 PowerShell에서
+```
+cd <저장소 폴더>
+.\Bin\Debug\SORModeler.exe
+```
+> ⚠️ exe를 **더블클릭하지 말 것** — 작업 폴더가 `Bin\Debug`가 되어 모델이 `Bin\Debug\Models\`(git 제외)에 저장된다.
+
+| 조작 | 기능 |
+|---|---|
+| 왼쪽 화면 클릭 / 드래그 / 오른쪽 클릭 | 프로파일 점 추가 / 이동 / 삭제 (x = 반지름, y = 높이, **위에서 아래로** 찍기) |
+| U / X | 마지막 점 취소 / 전부 지우기 |
+| C | 곡선(Catmull-Rom) 켜기/끄기 |
+| + / − , A | 분할 수 변경 / 회전 각도 직접 입력(콘솔) |
+| 오른쪽 화면 드래그 / 휠 / R | 시점 회전 / 확대 / 초기화 |
+| F / W / N | 면 / 와이어프레임 / 법선 표시 |
+| **S** | 저장 → `Models/<이름>.dat`(Mesh) + `Models/<이름>.prof`(프로파일). **콘솔 창에 이름 입력** |
+| O | `Models/<이름>.prof` 열어서 다시 편집 |
+
+- 빨간 선 = 회전축(Y축), 점선 = 높이 1 기준, 바닥 = y 0 → 팀 좌표 규칙에 맞게 그리면 된다.
+- 게임에서 불러오기: `#include "Mesh.h"` → `Mesh m; LoadMesh("Models/lamp_body.dat", m);` → 변환(glTranslate/glRotate/glScale) 후 `DrawMesh(m);`
+- 모델을 다 만들면 `.dat`과 `.prof`를 **둘 다** 커밋한다 (`.prof`가 있어야 나중에 수정 가능).
 
 ---
 
