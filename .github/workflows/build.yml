@@ -30,16 +30,20 @@ jobs:
         run: |
           # 서버에 설치된 VS 툴셋 확인: v145(VS 2026)가 없으면 v143(VS 2022)으로 빌드
           $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          $toolsets = Get-ChildItem "$vs\MSBuild\Microsoft\VC\*\Platforms\Win32\PlatformToolsets" -Directory | Select-Object -ExpandProperty Name
-          $toolset = if ($toolsets -contains 'v145') { 'v145' } else { 'v143' }
-          Write-Host "VS: $vs / toolset: $toolset"
+          $toolsets = @(Get-ChildItem "$vs\MSBuild\Microsoft\VC\*\Platforms\Win32\PlatformToolsets" -Directory | Select-Object -ExpandProperty Name | Sort-Object -Unique)
+          Write-Host "VS: $vs"
+          Write-Host "installed toolsets: $($toolsets -join ', ')"
+          $toolset = @('v145', 'v143') | Where-Object { $toolsets -contains $_ } | Select-Object -First 1
+          if (-not $toolset) { Write-Host "::error::v145/v143 툴셋을 찾지 못함"; exit 1 }
+          Write-Host "using toolset: $toolset"
 
           $failed = @()
           foreach ($p in 'SORModeler', 'MazeGame') {
             $src = @(Get-ChildItem $p -Recurse -Filter *.cpp -ErrorAction SilentlyContinue)
             if ($src.Count -eq 0) {
-              Write-Host "::notice::$p 에 아직 .cpp 파일이 없어서 빌드를 건너뜀"
-              continue
+              # 아직 코드가 없으면 서버에서만 임시 파일을 만들어 빌드 도구·freeglut 링크를 점검 (커밋되지 않음)
+              Write-Host "::notice::$p 에 아직 .cpp가 없어 임시 코드로 빌드 환경만 점검"
+              "#include <GL/glut.h>`nint main(int argc, char** argv) { glutInit(&argc, argv); return 0; }" | Set-Content "$p/__ci_smoke.cpp"
             }
             Write-Host "::group::$p 빌드"
             msbuild "$p/$p.vcxproj" /p:Configuration=Debug /p:Platform=Win32 /p:PlatformToolset=$toolset /m /nologo /v:minimal
