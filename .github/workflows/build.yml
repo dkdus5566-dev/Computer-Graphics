@@ -21,7 +21,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: microsoft/setup-msbuild@v2
 
@@ -30,7 +30,7 @@ jobs:
         run: |
           # 서버에 설치된 VS 툴셋 확인: v145(VS 2026)가 없으면 v143(VS 2022)으로 빌드
           $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-          $toolsets = @(Get-ChildItem "$vs\MSBuild\Microsoft\VC\*\Platforms\Win32\PlatformToolsets" -Directory | Select-Object -ExpandProperty Name | Sort-Object -Unique)
+          $toolsets = @(Get-Item "$vs\MSBuild\Microsoft\VC\*\Platforms\Win32\PlatformToolsets\*" | Where-Object { $_.PSIsContainer } | Select-Object -ExpandProperty Name | Sort-Object -Unique)
           Write-Host "VS: $vs"
           Write-Host "installed toolsets: $($toolsets -join ', ')"
           $toolset = @('v145', 'v143') | Where-Object { $toolsets -contains $_ } | Select-Object -First 1
