@@ -77,6 +77,7 @@ cd <저장소 폴더>
 
 - 빨간 선 = 회전축(Y축), 점선 = 높이 1 기준, 바닥 = y 0 → 팀 좌표 규칙에 맞게 그리면 된다.
 - 게임에서 불러오기: `#include "Mesh.h"` → `Mesh m; LoadMesh("Models/lamp_body.dat", m);` → 변환(glTranslate/glRotate/glScale) 후 `DrawMesh(m);`
+- 콘솔에 한글을 출력하는 프로그램은 `main()` 첫 줄에서 `InitConsoleUtf8();` 호출 (`#include "ConsoleUtf8.h"`). 소스는 `/utf-8`로 컴파일된다 (`Shared.props`).
 - 모델을 다 만들면 `.dat`과 `.prof`를 **둘 다** 커밋한다 (`.prof`가 있어야 나중에 수정 가능).
 
 ---

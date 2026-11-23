@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 
+#include "ConsoleUtf8.h"
 #include "Mesh.h"
 #include "SOR.h"
 
@@ -560,7 +561,8 @@ void PrintHelp()
         "   O: Models/<이름>.prof 열어서 다시 편집\n"
         "   ※ S / O / A 를 누른 뒤에는 이 콘솔 창에 입력하세요.\n"
         " Esc: 종료\n"
-        "==============================================\n";
+        " ※ 저장 이름은 영문·숫자·_ 로 (예: hermes_sole)\n"
+        "==============================================\n" << std::flush;
 }
 
 // 처음 실행했을 때 보이는 예시 프로파일 (꽃병)
@@ -579,6 +581,7 @@ void LoadSampleProfile()
 
 int main(int argc, char** argv)
 {
+    InitConsoleUtf8();  // 콘솔 한글 출력 (어떤 언어의 Windows에서도)
     glutInit(&argc, argv);
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
