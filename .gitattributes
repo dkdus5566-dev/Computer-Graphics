@@ -1,0 +1,19 @@
+# 줄바꿈을 저장소 안에서는 LF로 통일, 체크아웃 시 OS에 맞게 변환
+* text=auto
+
+# Visual Studio 파일은 항상 CRLF
+*.cpp     text eol=crlf
+*.h       text eol=crlf
+*.hpp     text eol=crlf
+*.slnx    text eol=crlf
+*.vcxproj text eol=crlf
+*.filters text eol=crlf
+*.props   text eol=crlf
+
+# 바이너리
+*.lib binary
+*.dll binary
+*.exe binary
+*.png binary
+*.jpg binary
+*.bmp binary

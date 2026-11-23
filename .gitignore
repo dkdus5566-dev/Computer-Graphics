@@ -1,0 +1,24 @@
+# 빌드 결과 (Shared.props 에서 Bin/, Build/ 로 출력)
+Bin/
+Build/
+
+# Visual Studio
+.vs/
+**/Debug/
+**/Release/
+**/x64/
+**/Win32/
+!freeglut/lib/x64/
+*.user
+*.ipch
+*.VC.db
+*.pdb
+*.ilk
+*.obj
+*.exe
+*.tlog
+*.log
+*.bak
+
+# 개인 메모 (저장소에 올리지 않음)
+CLAUDE.md
