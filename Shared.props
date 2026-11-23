@@ -37,9 +37,16 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
 
-  <!-- Common 폴더의 소스는 두 프로젝트에 자동 포함 (vcxproj를 고칠 필요 없음) -->
+  <!--
+    소스 자동 포함: 폴더에 .cpp/.h 파일을 넣기만 하면 빌드에 들어간다. → 아무도 .vcxproj를 고치지 않음 (merge 충돌 방지)
+    - Common\        : 두 프로젝트에 모두 포함 (모델러·게임 공용 코드)
+    - 각 프로젝트 폴더 : 그 프로젝트에만 포함 (SORModeler\, MazeGame\ 와 하위 폴더)
+    Visual Studio의 "추가 > 새 항목"은 .vcxproj에 줄을 추가하므로 쓰지 않는다 (CONTRIBUTING.md 참고).
+  -->
   <ItemGroup>
     <ClCompile Include="$(RepoRoot)Common\**\*.cpp" />
     <ClInclude Include="$(RepoRoot)Common\**\*.h" />
+    <ClCompile Include="$(MSBuildProjectDirectory)\**\*.cpp" />
+    <ClInclude Include="$(MSBuildProjectDirectory)\**\*.h" />
   </ItemGroup>
 </Project>

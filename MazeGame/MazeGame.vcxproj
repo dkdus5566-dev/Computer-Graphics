@@ -61,7 +61,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <!-- 이 프로젝트의 소스(.cpp/.h)는 Visual Studio에서 "추가 > 새 항목"으로 MazeGame 폴더에 추가 -->
+  <!-- 소스(.cpp/.h)는 MazeGame 폴더에 파일을 넣기만 하면 자동 포함됨 (Shared.props). 이 파일에 ClCompile을 추가하지 말 것 -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
