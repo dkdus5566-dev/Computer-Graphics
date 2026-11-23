@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  팀 공통 빌드 설정. SORModeler, MazeGame 두 프로젝트가 모두 이 파일을 가져다 쓴다.
+  경로·라이브러리·출력 폴더를 바꿀 때는 각 프로젝트 속성 말고 이 파일 하나만 고친다.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="UserMacros">
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- exe 출력: Bin\Debug\SORModeler.exe 처럼 한곳에 모임 (중간 파일은 Build\) -->
+    <OutDir>$(RepoRoot)Bin\$(Configuration)\</OutDir>
+    <IntDir>$(RepoRoot)Build\$(ProjectName)\$(Configuration)\</IntDir>
+    <!-- 디버그 실행 시 작업 폴더 = 저장소 루트. 코드에서는 "Models/xxx.dat" 상대경로를 쓴다.
+         제출할 때는 Bin 폴더에 exe와 Models 폴더를 같이 넣으면 같은 경로로 동작한다. -->
+    <LocalDebuggerWorkingDirectory>$(RepoRoot)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(RepoRoot)freeglut\include;$(RepoRoot)Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <!-- fopen, sprintf 등 강의 예제 코드를 그대로 쓸 수 있게 -->
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>$(RepoRoot)freeglut\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freeglut.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <!-- exe 옆에 freeglut.dll 자동 복사 -->
+      <Command>xcopy /y /d "$(RepoRoot)freeglut\dll\freeglut.dll" "$(OutDir)"</Command>
+      <Message>freeglut.dll 복사</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+
+  <!-- Common 폴더의 소스는 두 프로젝트에 자동 포함 (vcxproj를 고칠 필요 없음) -->
+  <ItemGroup>
+    <ClCompile Include="$(RepoRoot)Common\**\*.cpp" />
+    <ClInclude Include="$(RepoRoot)Common\**\*.h" />
+  </ItemGroup>
+</Project>

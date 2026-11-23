@@ -1,0 +1,22 @@
+# 팀 공통 코드 스타일 (Visual Studio / VS Code가 자동으로 따름)
+root = true
+
+[*]
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C++ 소스: UTF-8(BOM) — 한글 주석·문자열이 팀원 PC마다 깨지지 않게
+[*.{cpp,h,hpp}]
+charset = utf-8-bom
+indent_style = space
+indent_size = 4
+
+[*.{vcxproj,props,slnx,filters}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+[*.md]
+charset = utf-8
+trim_trailing_whitespace = false
