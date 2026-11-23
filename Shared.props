@@ -21,6 +21,9 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(RepoRoot)freeglut\include;$(RepoRoot)Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <!-- 소스·문자열을 UTF-8로 컴파일 → 한글 문자열이 어떤 언어의 Windows에서도 같은 바이트가 됨.
+           콘솔 출력은 프로그램 시작 시 InitConsoleUtf8() (Common/ConsoleUtf8.h) 호출 -->
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <!-- fopen, sprintf 등 강의 예제 코드를 그대로 쓸 수 있게 -->
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
