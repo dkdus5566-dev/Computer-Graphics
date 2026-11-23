@@ -21,4 +21,6 @@ Build/
 *.bak
 
 # 개인 메모 (저장소에 올리지 않음)
-CLAUDE.md
+# 루트의 CLAUDE.md, AGENTS.md는 팀 공용 규칙이라 커밋한다. 개인 메모는 CLAUDE.local.md에.
+CLAUDE.local.md
+*.local.md
