@@ -66,7 +66,8 @@ SORModeler/           ← SOR 모델러 (프로파일 → 3D Mesh → .dat 저�
 MazeGame/             ← 미로 게임
 Models/               ← SOR 모델 데이터 (.dat 등)
 docs/items/           ← 아이템 설계서 (_TEMPLATE.md 복사해서 작성)
-.github/              ← PR 템플릿 (PR 만들 때 자동으로 채워짐)
+.github/              ← PR 템플릿, 자동 빌드 검사(workflows/build.yml), Copilot 안내
+AGENTS.md, CLAUDE.md  ← AI 도구가 자동으로 읽는 팀 규칙 안내 (본문은 이 파일)
 ```
 
 | 아이템 (SOR) | 능력 | 브랜치 | 설계서 | 게임 코드 | 모델 파일 |
@@ -146,12 +147,44 @@ git branch -d feature/hermes-dash         #    끝난 브랜치 삭제
 - ❌ main에 직접 push, `git push --force`
 - ❌ 빌드 결과물(`Bin/`, `Build/`, `.vs/`, exe, obj) 커밋 — `.gitignore`가 막음
 - ❌ 남의 담당 파일을 말없이 수정 → PR 댓글/단톡으로 먼저 말하기
-- ❌ 개인정보, 개인 메모(CLAUDE.md 등) 커밋
+- ❌ 개인정보, 개인 메모 커밋 → 개인 메모는 `CLAUDE.local.md` (git 제외). 루트의 `CLAUDE.md`·`AGENTS.md`는 팀 공용 AI 안내라 커밋됨
 - ❌ 며칠씩 커밋 없이 쌓아 두기 → 충돌 커짐. 작업 중에도 `git merge main`으로 자주 최신화
 
 ### PR 올릴 때
-- 무엇을 했는지 / 어떻게 확인했는지(빌드·실행) / AI를 썼다면 무엇을 시켰는지 적는다.
+- 무엇을 했는지 / 어떻게 확인했는지(빌드·실행) / AI를 썼다면 무엇을 시켰는지 적는다. (PR 양식이 자동으로 채워짐)
 - **Debug | x86 빌드가 되는 상태**로만 PR을 올린다.
+- **리뷰어 1명을 지정**한다. 알림은 GitHub이 보내므로 카톡은 급할 때·회의가 필요할 때만.
+
+### 자동 빌드 검사 (CI)
+- PR을 올리거나 main이 바뀌면 GitHub 서버가 자동으로 **Debug | x86 빌드**를 해 본다 (`.github/workflows/build.yml`).
+- PR 화면 아래 체크가 ✅ 이면 빌드 통과, ❌ 이면 **merge 금지** → "Details"에서 오류 확인 후 내 브랜치에서 고쳐 다시 push.
+- 아직 `.cpp`가 없는 프로젝트는 건너뛴다.
+
+---
+
+## 4-1. GitHub CLI(`gh`)로 PR 진행 — AI가 그대로 실행 가능
+
+**처음 한 번:** `winget install GitHub.cli` → 터미널 새로 열고 `gh auth login` (GitHub.com → HTTPS → 브라우저 로그인)
+
+| 하는 일 | 명령 |
+|---|---|
+| PR 만들기 + 리뷰어 지정 | `gh pr create --base main --title "[Model] 등불 설계서" --reviewer <팀원 GitHub 아이디>` |
+| 열린 PR 목록 | `gh pr list` |
+| 리뷰 요청받은 PR 보기 | `gh pr status` |
+| 남의 PR 받아서 빌드해 보기 | `gh pr checkout <번호>` |
+| 바뀐 내용 보기 | `gh pr diff <번호>` |
+| 승인 | `gh pr review <번호> --approve --body "빌드·실행 확인했어요"` |
+| 수정 요청 | `gh pr review <번호> --request-changes --body "무엇을 고쳐 주세요"` |
+| CI 결과 보기 | `gh pr checks <번호>` |
+| merge (승인 + CI ✅ 후) | `gh pr merge <번호> --merge --delete-branch` |
+| merge 후 최신화 | `git switch main && git pull` |
+
+- **merge는 승인을 받은 뒤**, 올린 사람 또는 리뷰어가 한다. 내 PR을 내가 승인 없이 merge하지 않는다.
+- AI에게 맡길 때도 승인·merge는 **사용자가 확인한 뒤에만** 실행하게 한다.
+
+### 알림 받기
+- GitHub 저장소 오른쪽 위 **Watch → All Activity** (또는 Participating and @mentions)
+- GitHub 모바일 앱 설치 → 리뷰 요청·댓글 알림이 바로 옴
 
 ---
 
