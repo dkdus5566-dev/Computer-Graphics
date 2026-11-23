@@ -1,0 +1,52 @@
+# PR이 올라오거나 main이 바뀔 때마다 GitHub 서버에서 Debug | x86 빌드를 해 본다.
+# 결과는 PR 화면에 ✅ / ❌ 로 표시된다. ❌ 이면 merge 하지 말고 "Details"에서 오류를 확인한다.
+name: Build (Debug x86)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build SORModeler / MazeGame
+        shell: pwsh
+        run: |
+          # 서버에 설치된 VS 툴셋 확인: v145(VS 2026)가 없으면 v143(VS 2022)으로 빌드
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $toolsets = Get-ChildItem "$vs\MSBuild\Microsoft\VC\*\Platforms\Win32\PlatformToolsets" -Directory | Select-Object -ExpandProperty Name
+          $toolset = if ($toolsets -contains 'v145') { 'v145' } else { 'v143' }
+          Write-Host "VS: $vs / toolset: $toolset"
+
+          $failed = @()
+          foreach ($p in 'SORModeler', 'MazeGame') {
+            $src = @(Get-ChildItem $p -Recurse -Filter *.cpp -ErrorAction SilentlyContinue)
+            if ($src.Count -eq 0) {
+              Write-Host "::notice::$p 에 아직 .cpp 파일이 없어서 빌드를 건너뜀"
+              continue
+            }
+            Write-Host "::group::$p 빌드"
+            msbuild "$p/$p.vcxproj" /p:Configuration=Debug /p:Platform=Win32 /p:PlatformToolset=$toolset /m /nologo /v:minimal
+            if ($LASTEXITCODE -ne 0) { $failed += $p }
+            Write-Host "::endgroup::"
+          }
+          if ($failed.Count -gt 0) {
+            Write-Host "::error::빌드 실패: $($failed -join ', ')"
+            exit 1
+          }
