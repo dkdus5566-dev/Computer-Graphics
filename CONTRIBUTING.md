@@ -8,6 +8,38 @@
 
 ---
 
+## 0. 처음 시작하기 — "맡은 SOR 시작" (사람·AI 공통)
+
+> AI에게: 아래 순서대로 진행하고, **자기 담당 파일만** 만들고 고친다. main에 직접 push하지 않는다. 막히면 사용자에게 묻는다.
+
+1. **저장소 받기**
+   ```
+   git clone https://github.com/dkdus5566-dev/Computer-Graphics   # 처음일 때
+   git switch main && git pull                                    # 이미 있을 때
+   ```
+2. **빌드 확인:** `CG_Final.slnx` 열기 → **Debug | x86** → 빌드. 실패하면 단톡에 알리기 (혼자 설정 고치지 않기).
+3. **내 브랜치 만들기:** `git switch -c feature/<아이템>` — 예: `feature/lamp`, `feature/argos-eye`, `feature/ariadne-thread`, `feature/hermes-shoes`
+4. **아이템 설계서 작성 (지금 단계의 "SOR 시작"):**
+   `docs/items/_TEMPLATE.md`를 복사해 `docs/items/<아이템>.md`로 만들고 채운다.
+   - 부품 나누기, 부품별 **2D 프로파일 점 좌표**(x=반지름 ≥ 0, y=높이, 전체 높이 ≈ 1), 분할 수
+   - 재질·색, 부품 조립(위치·회전·크기)
+   - 게임 능력 사양(키, 지속 시간, 쿨타임, 다른 기능과의 연동)
+5. **커밋 → push → PR:** `[Model] <아이템> 설계서` 로 PR을 올리고 단톡에 링크 공유.
+6. **다음 단계 (모델러 merge 후):** SOR 모델러로 설계서의 프로파일을 입력해 `Models/<아이템>_*.dat` 생성 → PR.
+   게임 능력 코드는 미로 기반(이동·충돌)이 main에 들어온 뒤 `MazeGame/<Item>.cpp`에 작성.
+
+### 현재 진행 상황
+| 작업 | 상태 | 브랜치 |
+|---|---|---|
+| 기본 구조·빌드 설정 | ✅ main | — |
+| SOR 모델러 (`Common/` Mesh·파일 입출력·SOR 생성 + `SORModeler/`) | 🔨 진행 중 (헤르메스의 신발 담당) | `feature/sor-modeler` |
+| 미로·플레이어 이동·충돌·카메라 기반 | ❓ 담당 정하기 | — |
+| 아이템 설계서 4종 | ⏳ 각자 | `feature/<아이템>` |
+
+> 진행 상황이 바뀌면 이 표를 PR로 갱신한다.
+
+---
+
 ## 1. 빌드 환경
 
 | 항목 | 값 |
@@ -33,14 +65,32 @@ Common/               ← 모델러·게임 공용 코드 (Mesh, 파일 입출�
 SORModeler/           ← SOR 모델러 (프로파일 → 3D Mesh → .dat 저장)
 MazeGame/             ← 미로 게임
 Models/               ← SOR 모델 데이터 (.dat 등)
+docs/items/           ← 아이템 설계서 (_TEMPLATE.md 복사해서 작성)
+.github/              ← PR 템플릿 (PR 만들 때 자동으로 채워짐)
 ```
 
-| 아이템 (SOR) | 능력 | 게임 코드 파일 (예시) | 모델 파일 이름 |
-|---|---|---|---|
-| 등불 | 가시거리 확보 | `MazeGame/Lamp.cpp` | `Models/lamp_*.dat` |
-| 헤르메스의 신발 | 대쉬 | `MazeGame/HermesShoes.cpp` | `Models/hermes_*.dat` |
-| 아르고스의 눈 | 텔레파시 (실타래 발광) | `MazeGame/ArgosEye.cpp` | `Models/argos_*.dat` |
-| 아리아드네의 실타래 | 탈출 | `MazeGame/AriadneThread.cpp` | `Models/ariadne_*.dat` |
+| 아이템 (SOR) | 능력 | 브랜치 | 설계서 | 게임 코드 | 모델 파일 |
+|---|---|---|---|---|---|
+| 등불 | 가시거리 확보 | `feature/lamp` | `docs/items/lamp.md` | `MazeGame/Lamp.cpp` | `Models/lamp_*.dat` |
+| 헤르메스의 신발 | 대쉬 | `feature/hermes-shoes` | `docs/items/hermes-shoes.md` | `MazeGame/HermesShoes.cpp` | `Models/hermes_*.dat` |
+| 아르고스의 눈 | 텔레파시 (실타래 발광) | `feature/argos-eye` | `docs/items/argos-eye.md` | `MazeGame/ArgosEye.cpp` | `Models/argos_*.dat` |
+| 아리아드네의 실타래 | 탈출 | `feature/ariadne-thread` | `docs/items/ariadne-thread.md` | `MazeGame/AriadneThread.cpp` | `Models/ariadne_*.dat` |
+
+> 파일 이름이 담당별로 나뉘어 있으므로 **서로 같은 파일을 고칠 일이 없다.** 공용 파일(`Common/`, `MazeGame/main.cpp` 등)을 고쳐야 하면 먼저 알린다.
+
+### 게임 입력 키 배정 (제안 — 겹치지 않게)
+| 키 | 기능 | 담당 |
+|---|---|---|
+| W A S D / 방향키 | 이동·회전 | 미로 기반 |
+| 마우스 | 시점 (선택) | 미로 기반 |
+| E | 상호작용 (아이템 줍기, 미노타우르스에게 전달) | 미로 기반 |
+| Shift | 대쉬 | 헤르메스의 신발 |
+| F | 등불 켜기/끄기 (필요 시) | 등불 |
+| Q | 텔레파시 사용 (필요 시) | 아르고스의 눈 |
+| T | 실타래 사용 (필요 시) | 아리아드네의 실타래 |
+| Esc | 메뉴/종료 | 미로 기반 |
+
+새 키가 필요하면 이 표에 추가하는 PR을 먼저 올린다.
 
 - **SOR 모델러는 하나**를 같이 쓴다. 각자 맡은 SOR은 모델러로 만든 **데이터 파일**이다.
 - 미로·플레이어 이동·충돌·카메라 기반 담당: **(팀에서 정하기)**
