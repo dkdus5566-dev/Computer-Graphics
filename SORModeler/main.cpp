@@ -102,7 +102,7 @@ std::vector<Vec2> SampledProfile()
 void RebuildIfDirty()
 {
     if (!gDirty) return;
-    gMesh = BuildSOR(SampledProfile(), gProfile.slices);
+    gMesh = BuildSOR(SampledProfile(), gProfile.slices, gProfile.sweep);
     gDirty = false;
 }
 
@@ -342,13 +342,13 @@ void DrawPreview()
     glColor3f(1.0f, 1.0f, 1.0f);
     DrawText(12, (float)h - 24, "3D PREVIEW (Surface of Revolution)", GLUT_BITMAP_HELVETICA_18);
     glColor3f(0.95f, 0.80f, 0.35f);
-    DrawText(12, (float)h - 44, Fmt("slices %.0f  (rotate %.2f deg x %.0f)",
-                                    gProfile.slices, 360.0 / gProfile.slices, gProfile.slices));
+    DrawText(12, (float)h - 44, Fmt("slices %.0f  (rotate %.2f deg, sweep %.0f deg)",
+                                    gProfile.slices, gProfile.sweep / gProfile.slices, gProfile.sweep));
     DrawText(12, (float)h - 62, Fmt("vertices %.0f   triangles %.0f",
                                     (double)gMesh.vertices.size(), (double)gMesh.faces.size()));
     glColor3f(0.70f, 0.72f, 0.78f);
     DrawText(12, 70, "drag: rotate view   wheel: zoom   R: reset view");
-    DrawText(12, 52, "+/-: slices   A: type angle   F: solid   W: wire   N: normals");
+    DrawText(12, 52, "+/-: slices   A: type angle   G: type sweep   F: solid   W: wire   N: normals");
     DrawText(12, 34, "S: save (Models/*.dat + *.prof)   O: open *.prof   (type in console)");
     glColor3f(0.50f, 0.90f, 0.60f);
     DrawText(12, 14, gStatus);
@@ -438,13 +438,29 @@ void InputAngle()
         std::cout << "  → 취소 (0보다 크고 120 이하로 입력)\n";
         return;
     }
-    const int slices = (int)std::lround(360.0f / angle);
-    SetSlices(slices);
+    const float count = gProfile.sweep / angle;  // 회전 범위 / 회전 각도 = 분할 수
+    SetSlices((int)std::lround(count));
     std::cout << "  → 분할 수 " << gProfile.slices << " (실제 회전 각도 "
-              << 360.0f / gProfile.slices << "도)\n";
-    if (std::fabs(360.0f / angle - std::round(360.0f / angle)) > 1e-3f)
-        std::cout << "  ※ 360의 약수가 아니어서 가장 가까운 각도로 맞췄습니다.\n";
-    gStatus = "Angle set: " + Fmt("%.2f deg (%.0f slices)", 360.0 / gProfile.slices, gProfile.slices);
+              << gProfile.sweep / gProfile.slices << "도)\n";
+    if (std::fabs(count - (float)gProfile.slices) > 1e-3f)
+        std::cout << "  ※ 회전 범위(" << gProfile.sweep << "도)가 나누어떨어지지 않아 가까운 각도로 맞췄습니다.\n";
+    gStatus = "Angle set: " + Fmt("%.2f deg (%.0f slices)", gProfile.sweep / gProfile.slices, gProfile.slices);
+}
+
+// 회전 범위 입력: 360 = 한 바퀴, 180 = 반 바퀴 (반원 띠, 뒤꿈치처럼 일부만 도는 모양)
+void InputSweep()
+{
+    std::cout << "\n[회전 범위] 콘솔에 입력하세요.\n";
+    const std::string s = Prompt("회전 범위(도), 10~360 (360 = 한 바퀴, 180 = 반 바퀴): ");
+    const float sweep = (float)atof(s.c_str());
+    if (!(sweep >= 10.0f && sweep <= 360.0f)) {
+        std::cout << "  → 취소 (10 이상 360 이하로 입력)\n";
+        return;
+    }
+    gProfile.sweep = sweep;
+    MarkDirty();
+    std::cout << "  → 회전 범위 " << gProfile.sweep << "도 (분할 수 " << gProfile.slices << ")\n";
+    gStatus = Fmt("Sweep set: %.0f deg", gProfile.sweep);
 }
 
 void SaveCurrent()
@@ -569,6 +585,7 @@ void Keyboard(unsigned char key, int, int)
     case '+': case '=': SetSlices(gProfile.slices + 1); break;
     case '-': case '_': SetSlices(gProfile.slices - 1); break;
     case 'a': case 'A': InputAngle(); break;
+    case 'g': case 'G': InputSweep(); break;
     case 'c': case 'C': gProfile.curve = !gProfile.curve; MarkDirty(); break;
     case 'f': case 'F': gShowSolid = !gShowSolid; break;
     case 'w': case 'W': gShowWire = !gShowWire; break;
@@ -599,12 +616,12 @@ void PrintHelp()
         "   빨간 선 = 회전축(Y축), 점선 = 높이 1 기준\n"
         " [오른쪽 화면] 3D 미리보기\n"
         "   드래그: 시점 회전   휠: 확대/축소   R: 시점 초기화\n"
-        "   + / -: 분할 수 변경   A: 회전 각도 입력 (콘솔)\n"
+        "   + / -: 분할 수 변경   A: 회전 각도 입력   G: 회전 범위 입력 (콘솔)\n"
         "   F: 면   W: 와이어프레임   N: 법선 표시\n"
         " [파일]\n"
         "   S: 저장 → Models/<이름>.dat (Mesh) + Models/<이름>.prof (프로파일)\n"
         "   O: Models/<이름>.prof 열어서 다시 편집\n"
-        "   ※ S / O / A 를 누른 뒤에는 이 콘솔 창에 입력하세요.\n"
+        "   ※ S / O / A / G 를 누른 뒤에는 이 콘솔 창에 입력하세요.\n"
         " Esc: 종료\n"
         " ※ 저장 이름은 영문·숫자·_ 로 (예: hermes_sole)\n"
         "==============================================\n" << std::flush;
