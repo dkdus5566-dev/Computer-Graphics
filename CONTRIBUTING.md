@@ -149,7 +149,7 @@ AGENTS.md, CLAUDE.md  ← AI 도구가 자동으로 읽는 팀 규칙 안내 (�
 
 ## 4. Git 작업 순서 (GitHub Flow)
 
-**main은 항상 빌드되는 상태. main에 직접 push 금지. 모든 작업은 브랜치 → PR → 팀원 1명 확인 → merge.**
+**main은 항상 빌드되는 상태. main에 직접 push 금지. 모든 작업은 브랜치 → PR → 검사 통과 → merge.** 승인은 필수가 아니지만 **공용 파일을 바꾸면 팀원 1명에게 확인받는다.**
 
 ```
 git switch main
@@ -159,7 +159,7 @@ git switch -c feature/hermes-dash         # ② 내 브랜치
 git add <파일>
 git commit -m "[Game] 대쉬 이동 추가"      # ③ 작게 자주 커밋
 git push -u origin feature/hermes-dash    # ④ 브랜치 push
-# ⑤ GitHub에서 Pull Request 만들기 → 팀원 확인 → Merge
+# ⑤ Pull Request 만들기 → build·rules 검사 통과 → Merge
 git switch main && git pull               # ⑥ merge 후 최신화
 git branch -d feature/hermes-dash         #    끝난 브랜치 삭제
 ```
@@ -185,7 +185,7 @@ git branch -d feature/hermes-dash         #    끝난 브랜치 삭제
 ### PR 올릴 때
 - 무엇을 했는지 / 어떻게 확인했는지(빌드·실행) / AI를 썼다면 무엇을 시켰는지 적는다. (PR 양식이 자동으로 채워짐)
 - **Debug | x86 빌드가 되는 상태**로만 PR을 올린다.
-- **리뷰어 1명을 지정**한다. 알림은 GitHub이 보내므로 카톡은 급할 때·회의가 필요할 때만.
+- 공용 파일(`Common/`, `SORModeler/`, `Shared.props`, `.vcxproj`, `CG_Final.slnx`, `.github/`, 규칙 문서)을 바꾸면 **리뷰어 1명을 지정**한다. 자기 담당 파일만 바꾸면 지정하지 않아도 된다. 알림은 GitHub이 보내므로 카톡은 급할 때·회의가 필요할 때만.
 
 ### 자동 빌드 검사 (CI)
 - PR을 올리거나 main이 바뀌면 GitHub 서버가 자동으로 **Debug | x86 빌드**를 해 본다 (`.github/workflows/build.yml`).
@@ -205,7 +205,7 @@ git branch -d feature/hermes-dash         #    끝난 브랜치 삭제
 
 | 하는 일 | 명령 |
 |---|---|
-| PR 만들기 + 리뷰어 지정 | `gh pr create --base main --title "[Model] 등불 설계서" --reviewer <팀원 GitHub 아이디>` |
+| PR 만들기 (공용 파일이면 리뷰어 지정) | `gh pr create --base main --title "[Model] 등불 설계서" --reviewer <팀원 GitHub 아이디>` |
 | 열린 PR 목록 | `gh pr list` |
 | 리뷰 요청받은 PR 보기 | `gh pr status` |
 | 남의 PR 받아서 빌드해 보기 | `gh pr checkout <번호>` |
@@ -213,10 +213,10 @@ git branch -d feature/hermes-dash         #    끝난 브랜치 삭제
 | 승인 | `gh pr review <번호> --approve --body "빌드·실행 확인했어요"` |
 | 수정 요청 | `gh pr review <번호> --request-changes --body "무엇을 고쳐 주세요"` |
 | CI 결과 보기 | `gh pr checks <번호>` |
-| merge (승인 + CI ✅ 후) | `gh pr merge <번호> --merge --delete-branch` |
+| merge (build·rules ✅ 후, 공용 파일은 확인도 받은 뒤) | `gh pr merge <번호> --merge --delete-branch` |
 | merge 후 최신화 | `git switch main && git pull` |
 
-- **merge는 승인을 받은 뒤**, 올린 사람 또는 리뷰어가 한다. 내 PR을 내가 승인 없이 merge하지 않는다.
+- **자기 담당 파일만 바꾼 PR**은 검사가 통과하면 올린 사람이 merge해도 된다. **공용 파일을 바꾼 PR**은 팀원 1명이 확인한 뒤 merge한다.
 - AI에게 맡길 때도 승인·merge는 **사용자가 확인한 뒤에만** 실행하게 한다.
 
 ### 알림 받기
