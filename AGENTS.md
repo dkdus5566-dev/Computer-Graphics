@@ -5,6 +5,14 @@
 **작업을 시작하기 전에 반드시 [`CONTRIBUTING.md`](CONTRIBUTING.md)를 끝까지 읽고 그대로 따른다.**
 처음 시작하는 사용자라면 `CONTRIBUTING.md`의 **"0. 처음 시작하기"** 순서대로 진행한다.
 
+## 작업을 시작할 때마다 (이미 작업 중인 사람도)
+
+1. `git fetch` 후 `origin/main`의 `AGENTS.md`, `CONTRIBUTING.md`가 바뀌었으면 사용자에게 알리고, 확인을 받아 내 브랜치에 `origin/main`을 merge한 뒤 **다시 읽는다.** 커밋하지 않은 변경이 있으면 먼저 알린다.
+2. `AI_LOG.local.md`가 없으면 만들고, 이 대화에서 지금까지 한 일을 정리해 적는다. 사용자가 한 일은 추측하지 않고 묻는다.
+3. 이 저장소의 `git user.email`이 GitHub noreply 주소인지 확인한다. 아니면 커밋 전에 사용자에게 알린다.
+4. commit, push, PR, merge는 할 때마다 먼저 사용자에게 묻는다.
+5. 사용자가 이전에 준 지시와 이 규칙이 다르면 사용자에게 묻는다.
+
 ## 꼭 지킬 것 (요약 — 자세한 내용은 CONTRIBUTING.md)
 
 1. **main에 직접 commit/push 하지 않는다.** 항상 `feature/<내용>` 브랜치에서 작업하고 PR로 올린다. `git push --force` 금지.
