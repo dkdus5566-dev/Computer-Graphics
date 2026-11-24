@@ -54,7 +54,8 @@
 | 언어 | C++17 |
 | 솔루션 | `CG_Final.slnx` |
 
-- 빌드하면 exe가 `Bin/Debug/`에 생기고 `freeglut.dll`이 자동 복사된다.
+- 빌드하면 exe가 `Bin/Debug/`에 생기고 `freeglut.dll`이 자동 복사된다. exe는 git에 없으므로 **각자 PC에서 빌드**한다.
+- `MazeGame`은 아직 코드가 없어 솔루션 빌드에서 빼 두었다. **미로 코드를 처음 넣는 PR에서** `CG_Final.slnx`의 `<Build Project="false" />`를 지운다.
 - 디버그 실행 시 작업 폴더 = **저장소 루트**. 파일 경로는 항상 상대경로 (`"Models/xxx.dat"`). 절대경로(`C:\...`) 금지.
 
 ---
