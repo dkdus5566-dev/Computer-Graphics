@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <direct.h>   // _mkdir
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -36,6 +37,7 @@ bool  gRotating = false;
 int   gLastX = 0, gLastY = 0;
 
 std::string gStatus = "Ready";
+std::string gCurrentName;         // 지금 편집 중인 모델 이름 (열기·저장에 성공했을 때만 바뀜)
 
 const int   kCurveSamples = 8;      // 제어점 사이 곡선 분할 수
 const float kViewH        = 1.5f;   // 편집 화면에 보이는 높이 (월드 단위)
@@ -382,6 +384,41 @@ std::string Prompt(const char* message)
     return s == std::string::npos ? std::string() : line.substr(s, e - s + 1);
 }
 
+// 작업 폴더에 Models가 없으면 exe 폴더부터 상위로 올라가며 Models가 있는 폴더를 찾아 작업 폴더로 삼는다.
+// → 탐색기에서 exe를 더블클릭해도(작업 폴더 = Bin/Debug) 저장소의 Models를 쓴다.
+void SelectWorkingFolder()
+{
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    if (!fs::is_directory("Models", ec)) {
+        wchar_t exePath[MAX_PATH] = {};
+        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        fs::path dir = fs::path(exePath).parent_path();
+        for (int up = 0; up < 4 && !dir.empty(); ++up) {
+            if (fs::is_directory(dir / "Models", ec)) {
+                fs::current_path(dir, ec);
+                break;
+            }
+            dir = dir.parent_path();
+        }
+    }
+    std::cout << " 모델 폴더: " << (fs::current_path(ec) / "Models").u8string() << "\n" << std::flush;
+}
+
+// 지금 편집 중인 모델이 아닌 파일을 덮어쓰게 되면 물어본다 (기본값: 아니오)
+bool ConfirmOverwrite(const std::string& name)
+{
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    const std::string base = "Models/" + name;
+    const bool exists = fs::exists(base + ".dat", ec) || fs::exists(base + ".prof", ec);
+    if (!exists || name == gCurrentName) return true;
+
+    std::cout << "  ※ " << base << " 파일이 이미 있습니다. 지금 화면의 모양으로 바뀝니다.\n";
+    const std::string answer = Prompt("  덮어쓸까요? (y = 덮어쓰기, 그 외 = 취소): ");
+    return answer == "y" || answer == "Y";
+}
+
 std::string StripExtension(std::string name)
 {
     for (const char* ext : { ".dat", ".prof" }) {
@@ -422,6 +459,12 @@ void SaveCurrent()
     const std::string name = StripExtension(Prompt("저장할 이름 (예: hermes_sole, 빈칸이면 취소): "));
     if (name.empty()) { std::cout << "  → 취소\n"; return; }
 
+    if (!ConfirmOverwrite(name)) {
+        std::cout << "  → 취소 (파일은 그대로입니다)\n";
+        gStatus = "Save cancelled";
+        return;
+    }
+
     _mkdir("Models");
     const std::string base = "Models/" + name;
     const bool ok = SaveMesh((base + ".dat").c_str(), gMesh) &&
@@ -429,6 +472,7 @@ void SaveCurrent()
     if (ok) {
         std::cout << "  → 저장 완료: " << base << ".dat (정점 " << gMesh.vertices.size()
                   << ", 삼각형 " << gMesh.faces.size() << "), " << base << ".prof\n";
+        gCurrentName = name;
         gStatus = "Saved: " + base + ".dat / .prof";
     } else {
         std::cout << "  → 저장 실패: " << base << " (폴더·이름 확인)\n";
@@ -449,6 +493,7 @@ void OpenProfile()
         gProfile.slices = std::clamp(gProfile.slices, kMinSlices, kMaxSlices);
         MarkDirty();
         std::cout << "  → 열기 완료: " << path << " (점 " << p.points.size() << "개)\n";
+        gCurrentName = name;
         gStatus = "Opened: " + path;
     } else {
         std::cout << "  → 열기 실패: " << path << "\n";
@@ -599,6 +644,7 @@ int main(int argc, char** argv)
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
     PrintHelp();
+    SelectWorkingFolder();
     LoadSampleProfile();
     glutMainLoop();
     return 0;
