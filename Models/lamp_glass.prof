@@ -1,0 +1,6 @@
+# SOR profile (x = radius, y = height)
+SLICES = 4
+CURVE = 0
+POINTS = 2
+0.216000 0.690000
+0.216000 0.140000
