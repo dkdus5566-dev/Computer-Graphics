@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 
 namespace {
 const float kAxisEps = 1e-4f;  // 이 값보다 반지름이 작으면 "회전축 위의 점"으로 본다
@@ -11,10 +12,11 @@ const float kAxisEps = 1e-4f;  // 이 값보다 반지름이 작으면 "회전�
 // ---------------------------------------------------------------------------
 // SOR Mesh 생성
 // ---------------------------------------------------------------------------
-Mesh BuildSOR(const std::vector<Vec2>& input, int slices)
+Mesh BuildSOR(const std::vector<Vec2>& input, int slices, float sweepDegrees)
 {
     Mesh mesh;
-    if (input.size() < 2 || slices < 3) return mesh;
+    const bool closed = sweepDegrees >= 359.99f;       // 한 바퀴면 마지막 줄이 첫 줄과 이어진다
+    if (input.size() < 2 || slices < (closed ? 3 : 1) || sweepDegrees <= 0.0f) return mesh;
 
     // 0번 점이 위쪽이 되게 정리 → 아래 삼각형 순서가 "바깥에서 볼 때 반시계"가 된다
     std::vector<Vec2> prof = input;
@@ -22,15 +24,17 @@ Mesh BuildSOR(const std::vector<Vec2>& input, int slices)
         std::reverse(prof.begin(), prof.end());
 
     const int   P    = (int)prof.size();
-    const float step = 2.0f * (float)M_PI / (float)slices;  // 회전 각도 (라디안)
+    const float sweep = closed ? 2.0f * (float)M_PI : sweepDegrees * (float)M_PI / 180.0f;
+    const float step = sweep / (float)slices;          // 회전 각도 (라디안)
+    const int   columns = closed ? slices : slices + 1; // 열린 모양은 끝 줄이 하나 더 필요하다
 
     // 1) 정점 생성: i번째 회전(θ = i·step)마다 프로파일 전체를 Y축 회전
     //    Y축 회전 행렬 적용 (프로파일은 z = 0 평면에 있음)
     //      x' =  x·cosθ + z·sinθ  =  r·cosθ
     //      y' =  y
     //      z' = -x·sinθ + z·cosθ  = -r·sinθ
-    mesh.vertices.reserve((size_t)slices * P);
-    for (int i = 0; i < slices; ++i) {
+    mesh.vertices.reserve((size_t)columns * P);
+    for (int i = 0; i < columns; ++i) {
         const float c = std::cos(i * step);
         const float s = std::sin(i * step);
         for (int j = 0; j < P; ++j) {
@@ -43,10 +47,10 @@ Mesh BuildSOR(const std::vector<Vec2>& input, int slices)
     //
     //      a(i, j) ─── c(i+1, j)        a, b, d  /  a, d, c
     //        │      ╲     │             (마지막 단계 i+1은 % slices 로 0번과 이어져 닫힘)
-    //      b(i, j+1) ─ d(i+1, j+1)
+    //      b(i, j+1) ─ d(i+1, j+1)     (한 바퀴가 아니면 잇지 않고 열어 둔다)
     auto idx = [P](int i, int j) { return i * P + j; };
     for (int i = 0; i < slices; ++i) {
-        const int next = (i + 1) % slices;
+        const int next = closed ? (i + 1) % slices : i + 1;
         for (int j = 0; j < P - 1; ++j) {
             const int a = idx(i, j),    b = idx(i, j + 1);
             const int c = idx(next, j), d = idx(next, j + 1);
@@ -64,9 +68,9 @@ Mesh BuildSOR(const std::vector<Vec2>& input, int slices)
     for (int j = 0; j < P; ++j) {
         if (prof[j].x > kAxisEps) continue;
         Vec3 sum(0.0f, 0.0f, 0.0f);
-        for (int i = 0; i < slices; ++i) sum += mesh.normals[idx(i, j)];
+        for (int i = 0; i < columns; ++i) sum += mesh.normals[idx(i, j)];
         const Vec3 n = Normalize(sum);
-        for (int i = 0; i < slices; ++i) mesh.normals[idx(i, j)] = n;
+        for (int i = 0; i < columns; ++i) mesh.normals[idx(i, j)] = n;
     }
     return mesh;
 }
@@ -120,6 +124,7 @@ bool SaveProfile(const char* path, const Profile& p)
     fprintf(f, "# SOR profile (x = radius, y = height)\n");
     fprintf(f, "SLICES = %d\n", p.slices);
     fprintf(f, "CURVE = %d\n", p.curve ? 1 : 0);
+    if (p.sweep < 359.99f) fprintf(f, "SWEEP = %.3f\n", p.sweep);
     fprintf(f, "POINTS = %d\n", (int)p.points.size());
     for (const Vec2& v : p.points)
         fprintf(f, "%.6f %.6f\n", v.x, v.y);
@@ -137,9 +142,18 @@ bool LoadProfile(const char* path, Profile& out)
     char line[256];
     bool ok = fgets(line, sizeof(line), f) != nullptr                // 주석 줄
            && fscanf(f, " SLICES = %d", &p.slices) == 1
-           && fscanf(f, " CURVE = %d", &curve) == 1
-           && fscanf(f, " POINTS = %d", &count) == 1
-           && count >= 0;
+           && fscanf(f, " CURVE = %d", &curve) == 1;
+    // SWEEP은 선택 항목 (없으면 360도), 그다음 POINTS
+    char  key[32] = {};
+    float value = 0.0f;
+    ok = ok && fscanf(f, " %31[A-Z] = %f", key, &value) == 2;
+    if (ok && strcmp(key, "SWEEP") == 0) {
+        p.sweep = value;
+        ok = value > 0.0f && value <= 360.0f
+           && fscanf(f, " %31[A-Z] = %f", key, &value) == 2;
+    }
+    ok = ok && strcmp(key, "POINTS") == 0 && value >= 0.0f;
+    if (ok) count = (int)value;
     for (int i = 0; ok && i < count; ++i) {
         Vec2 v;
         ok = fscanf(f, "%f %f", &v.x, &v.y) == 2;
