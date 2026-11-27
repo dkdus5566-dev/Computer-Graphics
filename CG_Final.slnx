@@ -9,7 +9,5 @@
     <File Path="Shared.props" />
   </Folder>
   <Project Path="SORModeler/SORModeler.vcxproj" Id="950b70af-8233-4efc-bacf-926ea585703b" />
-  <Project Path="MazeGame/MazeGame.vcxproj" Id="163e951a-d3d1-4fa9-87fd-62c2e0c3a63a">
-    <Build Project="false" />
-  </Project>
+  <Project Path="MazeGame/MazeGame.vcxproj" Id="163e951a-d3d1-4fa9-87fd-62c2e0c3a63a" />
 </Solution>

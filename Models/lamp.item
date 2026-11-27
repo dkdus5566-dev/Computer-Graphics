@@ -1,0 +1,139 @@
+# 등불 (원형 허리케인 등불) — docs/items/lamp-redesign.md 2절 조립표를 옮긴 것
+# 형식은 MazeGame/ItemModel.h 참고. 변환은 적은 순서대로 정점에 적용된다. 반투명 부품은 불투명도 < 1
+# 
+# 몸체 (원점)
+PART lamp_v2_tank.dat #70482A 1 0.5 0
+BAND 0.08 0.104 #3E2B22
+BAND 0.013 0.025 #965938
+BAND 0.103 0.111 #965938
+PART lamp_v2_cap.dat #7A502E 1 0.5 0
+BAND 0.677 0.699 #555A55
+BAND 0.698 0.709 #965938
+BAND 0.754 0.786 #3E2B22
+BAND 0.786 0.792 #555A55
+PART lamp_v2_burner.dat #98642F 1 0.5 0
+BAND 0.324 0.338 #D6A558
+PART lamp_v2_flame_core.dat #FFF1B3 1 0 1
+# 
+# 지지대와 손잡이 (좌우 반복)
+PART lamp_v2_tube.dat #794F2D 1 0.5 0
+T 0.21 0.224 0
+REPEAT_Y 0 180
+PART lamp_v2_elbow.dat #794F2D 1 0.5 0
+RX -90
+T 0.146 0.224 0
+REPEAT_Y 0 180
+PART lamp_v2_elbow.dat #794F2D 1 0.5 0
+RX 90
+T 0.146 0.648 0
+REPEAT_Y 0 180
+PART lamp_v2_handle_bend.dat #9E6A41 1 0.5 0
+RX 90
+T -0.01 0.66 0
+REPEAT_Y 0 180
+PART lamp_v2_handle_bend.dat #9E6A41 1 0.5 0
+RX -90
+RZ 200
+T 0.403465 0.810489 0
+REPEAT_Y 0 180
+PART lamp_v2_handle.dat #9E6A41 1 0.5 0
+S 1 1 1.144632
+RX 90
+T 0 0.810489 0
+# 
+# 장식
+PART lamp_v2_finial.dat #D6A558 1 0.5 0
+T 0.151 0.709 0
+REPEAT_Y 45 135 225 315
+PART lamp_v2_knob.dat #D6A558 1 0.5 0
+RX 53
+T 0 0.177 0.172
+PART lamp_v2_leaf.dat #231811
+S 0.57 0.67 0.19
+T 0 0.768 0.0825
+REPEAT_Y 0 30 60 90 120 150 180 210 240 270 300 330
+PART lamp_v2_scroll.dat #9D673A 1 0.5 0
+RX 90
+RZ 35
+T 0.039 0.619 0.12
+REPEAT_Y 0 180
+PART lamp_v2_scroll.dat #9D673A 1 0.5 0
+RX 90
+RZ -60
+T 0.039 0.334 0.111
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.144966 0.16
+RX 21.974508
+T 0.061 0.348 0.115
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.118513 0.16
+RX 5.710593
+T 0.061 0.405 0.138
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.226477 0.16
+RX -8.383248
+T 0.061 0.455 0.143
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.127009 0.16
+RX -15.068488
+T 0.061 0.55 0.129
+REPEAT_Y 0 180
+PART lamp_v2_leaf.dat #AE7441 1 0.5 0
+S 1 1 0.4
+RZ -33
+T 0.061 0.39 0.13
+REPEAT_Y 0 180
+PART lamp_v2_leaf.dat #AE7441 1 0.5 0
+S 1 1 0.4
+RZ -33
+T 0.061 0.527 0.135
+REPEAT_Y 0 180
+PART lamp_v2_scroll.dat #9D673A 1 0.5 0
+RX 90
+RZ 215
+T -0.039 0.619 0.12
+REPEAT_Y 0 180
+PART lamp_v2_scroll.dat #9D673A 1 0.5 0
+RX 90
+RZ 120
+T -0.039 0.334 0.111
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.144966 0.16
+RX 21.974508
+T -0.061 0.348 0.115
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.118513 0.16
+RX 5.710593
+T -0.061 0.405 0.138
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.226477 0.16
+RX -8.383248
+T -0.061 0.455 0.143
+REPEAT_Y 0 180
+PART lamp_v2_tube.dat #3E2B22 1 0.5 0
+S 0.16 0.127009 0.16
+RX -15.068488
+T -0.061 0.55 0.129
+REPEAT_Y 0 180
+PART lamp_v2_leaf.dat #AE7441 1 0.5 0
+S 1 1 0.4
+RZ 33
+T -0.061 0.39 0.13
+REPEAT_Y 0 180
+PART lamp_v2_leaf.dat #AE7441 1 0.5 0
+S 1 1 0.4
+RZ 33
+T -0.061 0.527 0.135
+REPEAT_Y 0 180
+# 
+# 반투명: 안쪽부터 (금빛 불꽃 → 주황 불꽃 → 유리)
+PART lamp_v2_flame_gold.dat #FFD15C 0.66 0 1
+PART lamp_v2_flame.dat #FF8529 0.36 0 1
+PART lamp_v2_glass.dat #F0BC5D 0.19 0.4 0

@@ -37,7 +37,7 @@
 |---|---|---|
 | 기본 구조·빌드 설정 | ✅ main | — |
 | SOR 모델러 (`Common/` Mesh·파일 입출력·SOR 생성 + `SORModeler/`) | ✅ 1차 완성 (헤르메스의 신발 담당) — 사용법은 아래 2-1 | `feature/sor-modeler` |
-| 미로·플레이어 이동·충돌·카메라 기반 | ❓ 담당 정하기 | — |
+| 미로·플레이어 이동·충돌·카메라 기반 (`MazeGame/`, `Maps/`) | ✅ 1차 완성 (헤르메스의 신발 담당) — 능력 붙이는 법은 아래 2-2 | `feature/maze-base` |
 | 아이템 설계서 4종 | ⏳ 각자 | `feature/<아이템>` |
 
 > 진행 상황이 바뀌면 이 표를 PR로 갱신한다.
@@ -55,7 +55,7 @@
 | 솔루션 | `CG_Final.slnx` |
 
 - 빌드하면 exe가 `Bin/Debug/`에 생기고 `freeglut.dll`이 자동 복사된다. exe는 git에 없으므로 **각자 PC에서 빌드**한다.
-- `MazeGame`은 아직 코드가 없어 솔루션 빌드에서 빼 두었다. **미로 코드를 처음 넣는 PR에서** `CG_Final.slnx`의 `<Build Project="false" />`를 지운다.
+- 게임 실행: VS에서 MazeGame을 시작 프로젝트로 → F5. 또는 저장소 폴더에서 `.\Bin\Debug\MazeGame.exe` (`Maps/`, `Models/`를 상대경로로 읽는다).
 - 디버그 실행 시 작업 폴더 = **저장소 루트**. 파일 경로는 항상 상대경로 (`"Models/xxx.dat"`). 절대경로(`C:\...`) 금지.
 
 ---
@@ -86,6 +86,38 @@ cd <저장소 폴더>
 - 콘솔에 한글을 출력하는 프로그램은 `main()` 첫 줄에서 `InitConsoleUtf8();` 호출 (`#include "ConsoleUtf8.h"`). 소스는 `/utf-8`로 컴파일된다 (`Shared.props`).
 - 모델을 다 만들면 `.dat`과 `.prof`를 **둘 다** 커밋한다 (`.prof`가 있어야 나중에 수정 가능).
 
+## 2-2. 미로 게임 구조와 능력 붙이기
+
+| 파일 | 하는 일 |
+|---|---|
+| `MazeGame/main.cpp` | 창, OpenGL 기본 상태, GLUT 콜백 |
+| `MazeGame/Game.*` | 시작 화면 → 탐색(E로 줍기, 미노타우르스에게 전달 → 능력 해금) → 출구 탈출 |
+| `MazeGame/Maze.*` | `Maps/maze.txt` 읽기, 벽·바닥 그리기, 원-상자 벽 충돌 |
+| `MazeGame/Player.*` | 1인칭 카메라, 이동(작은 단계로 나눠 축별 충돌 → 벽을 따라 미끄러짐) |
+| `MazeGame/ItemModel.*` | 아이템 조립 파일 `Models/<아이템>.item` 읽기·그리기 |
+| `MazeGame/Ability.h` | 아이템 능력 연결 지점 |
+| `MazeGame/HermesShoes.cpp` | 헤르메스의 신발 능력: 이동속도 ×1.25, Shift 대쉬 |
+| `MazeGame/Lamp.cpp` | 등불 능력 **기본 버전**: 가시거리 7 → 14 |
+| `MazeGame/ArgosEye.cpp` | 아르고스의 눈 능력 **기본 버전**: Q → 5초 투시, 쿨타임 8초 |
+| `MazeGame/AriadneThread.cpp` | 실타래 능력 **기본 버전**: 출구까지 바닥에 붉은 실 (T로 켜고 끄기) |
+
+- **게임 흐름 (메트로베니아식, 고정 지도):** 가운데 방에 갇힌 미노타우르스(아군)에게 창살 앞에서 말을 건다 → 미로에서 유물을 주워 전달하면 고쳐 주고 능력이 생긴다 → 능력으로 전에 못 가던 곳을 지난다.
+  남쪽에서 등불·아르고스의 눈 → **가짜 벽**(눈으로 투시하는 동안만 보이고 지나감) 너머 동쪽에서 신발 → **가시 구덩이**(대쉬로만 넘음) 너머 북쪽에서 실타래 → 출구.
+- **지도:** `Maps/maze.txt` 글자로 고친다 (`#` 벽, `S` 시작, `M` 미노타우르스, `B` 창살, `%` 가짜 벽, `^` 가시 구덩이, `X` 출구, `L H A T` 아이템). 파일 맨 위 설명 참고.
+- **단상:** 아이템은 단상 위에 떠 있다. 단상은 분할 4인 SOR(`Models/pedestal.prof`/`.dat`, 옆면 4개가 위로 좁아지는 사다리꼴, 윗면은 낮은 피라미드)이고, 게임에서 면 법선과 돌 텍스처로 그린다. 플레이어는 단상을 통과하지 못한다.
+- **아이템 모델:** `Models/<아이템>.item`에 부품 `.dat`과 변환·색을 적는다. 형식은 `MazeGame/ItemModel.h` 맨 위 설명, 예시는 `Models/hermes.item`, `Models/lamp.item`. 파일이 없으면 게임에서 임시 구로 보인다. 아르고스는 `Models/argos.item`, 실타래는 `Models/ariadne.item`.
+- **기본 버전:** `Lamp.cpp`, `ArgosEye.cpp`, `AriadneThread.cpp`는 게임 전체를 끝까지 해 볼 수 있도록 미로 기반 담당이 최소 기능만 넣어 둔 것이다. **각 담당이 자기 파일을 자유롭게 고치고 늘린다** (수치, 효과, 키 등).
+- **능력:** 미로 기반 파일은 고치지 않는다. 자기 파일(`MazeGame/<Item>.cpp`)에서 `RegisterAbility`를 한 번 호출한다. 예시와 쓸 수 있는 정보(`World`)는 `MazeGame/Ability.h`, 실제 예는 `MazeGame/HermesShoes.cpp`.
+  - 등불: `w.viewDistance`(가시거리, 기본 7)를 늘린다.
+  - 아르고스의 눈: 일정 시간 `w.xray = true` → 가짜 벽이 보이고 지나갈 수 있으며, 남은 아이템이 벽 너머로 빛난다. 시간·쿨타임·키(Q)는 담당이 정한다. **눈 능력이 없으면 신발 구역에 갈 수 없다.**
+  - 실타래: 전달하면 출구가 열리는 것은 미로 기반에 들어 있다. 길 안내 같은 효과를 붙인다.
+  ```cpp
+  #include "Ability.h"
+  static void OnUnlock(World& w) { w.viewDistance = 14.0f; }   // 전달한 순간 한 번
+  static bool registered = RegisterAbility({ 'L', OnUnlock });
+  ```
+- 미로 기반에 필요한 기능이 있으면 미로 기반 담당에게 먼저 말한다.
+
 ---
 
 ## 2. 폴더 구조와 담당
@@ -97,6 +129,7 @@ freeglut/             ← 수정 금지
 Common/               ← 모델러·게임 공용 코드 (Mesh, 파일 입출력, SOR 생성)
 SORModeler/           ← SOR 모델러 (프로파일 → 3D Mesh → .dat 저장)
 MazeGame/             ← 미로 게임
+Maps/                 ← 미로 지도 (maze.txt)
 Models/               ← SOR 모델 데이터 (.dat 등)
 docs/items/           ← 아이템 설계서 (_TEMPLATE.md 복사해서 작성)
 docs/ai-log/          ← 담당별 발표용 AI 활용 기록 (_TEMPLATE.md 복사해서 작성)
@@ -128,7 +161,7 @@ AGENTS.md, CLAUDE.md  ← AI 도구가 자동으로 읽는 팀 규칙 안내 (�
 새 키가 필요하면 이 표에 추가하는 PR을 먼저 올린다.
 
 - **SOR 모델러는 하나**를 같이 쓴다. 각자 맡은 SOR은 모델러로 만든 **데이터 파일**이다.
-- 미로·플레이어 이동·충돌·카메라 기반 담당: **(팀에서 정하기)**
+- 미로·플레이어 이동·충돌·카메라 기반 담당: **헤르메스의 신발 담당** (`MazeGame/`의 Game·Maze·Player·ItemModel·Ability·main, `Maps/`)
 
 ---
 
@@ -245,7 +278,7 @@ i0 i1 i2         ← m줄 (삼각형 index, 0부터)
 - 회전축: **Y축**, 프로파일은 x ≥ 0 (반지름), y = 높이
 - 바닥: **y = 0**, 크기: 높이 **≈ 1** (게임에서 scale로 조절)
 - 삼각형: 바깥에서 볼 때 **반시계(CCW)**
-- 부품 여러 개짜리 아이템: 부품별 `.dat` + 조립 정보(부품 파일, 위치·회전·크기·색) — 형식 회의에서 확정
+- 부품 여러 개짜리 아이템: 부품별 `.dat` + 조립 파일 `Models/<아이템>.item` (형식: `MazeGame/ItemModel.h`, 2-2 참고)
 
 ---
 
